@@ -2,110 +2,119 @@
 <html lang="zh">
 
 <head>
-   <meta charset="UTF-8">
-   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Snake!</title>
-   <style>
-      * {
-         margin: 0;
-         padding: 0;
-      }
-
-      #body {
-         background-color: white;
-      }
-
-      #container {
-         position: fixed;
-         padding: 0;
-         height: 100%;
-         width: 100%;
-         display: flex;
-      }
-
-      canvas {
-         position: relative;
-         display: flex;
-         left: 50%;
-         top: 50%;
-         transform: translate(-50%, -50%);
-         border: transparent solid 30px;
-      }
-
-      #canvas_2 {
-         transform: translate(-150%, -50%);
-      }
-   </style>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        
+        #body {
+            background-color: white;
+        }
+        
+        #container {
+            position: fixed;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            display: flex;
+        }
+        
+        canvas {
+            position: relative;
+            display: flex;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border: transparent solid 30px;
+        }
+        
+        #canvas_2 {
+            transform: translate(-150%, -50%);
+        }
+    </style>
 </head>
 
 <body id="body">
-   <div id="container" style="z-index: 1;">
-      <!-- Snake & Apples are here -->
-      <canvas id="canvas_1" style="z-index: 3;" width="640" height="640"></canvas>
-      <!-- The background board is here -->
-      <canvas id="canvas_2" style="z-index: 2;" width="640" height="640"></canvas>
+    <div id="container" style="z-index: 1;">
+        <!-- Snake & Apples are here -->
+        <canvas id="canvas_1" style="z-index: 3;" width="640" height="640"></canvas>
+        <!-- The background board is here -->
+        <canvas id="canvas_2" style="z-index: 2;" width="640" height="640"></canvas>
 
-   </div>
+    </div>
 
 </body>
 <script>
-   /* div: 简易json */
-   var setting = {
-      mode: 0,
-      width: 16,
-      height: 16,
-      themeNum: 0,
-      appleColor: "red"
-   }
-   setting.wall = function () {
-      switch (setting.mode) {
-         case 0:
-            return []; //要用真实坐标表示        
-            break;
+    /* div: 简易json */
+    var setting = {
+        mode: 0,
+        width: 16,
+        height: 16,
+        themeNum: 0,
+        appleColor: "red",
+        appleScore: 10,
+        intervalTime: 0.25,
+    }
+    setting.wall = function() {
+            switch (setting.mode) {
+                case 0:
+                    return []; //要用真实坐标表示        
+                    break;
 
-         default:
-            break;
-      }
-   }()
-   /* 配色方案 */
-   const theme = {
-      /**
-       * 0: 棋盘浅色, 1: 棋盘深色, 2: 背景浅色, 3: 边框深色, 4: 蛇身颜色, 5: 蛇头颜色, 6: 苹果颜色
-       * @param {*} choice 选择颜色对应的数字
-       * @returns 一个带#的颜色字符
-       */
-      color: function (choice) {
-         return allColors[setting.themeNum][choice];
-      }
-   }
-   const allColors = [
-      ["#C7CDFF", "#83B6FD", "#248AD5", "#0E6AAB", "#FFAA40", "#FF6C02", "#FF005D"]
-   ]; //0: 棋盘浅色, 1: 棋盘深色, 2: 背景浅色, 3: 边框深色, 4: 蛇身颜色, 5: 蛇头颜色, 6: 苹果颜色
-
-   /* div: 玩家按键 */
-   var arrowKey = "left";
-   window.onkeydown = function (e) {
-      let k = e.keyCode;
-      switch (k) {
-         case 37:
-            arrowKey = "left";
-            break;
-         case 38:
-            arrowKey = "up";
-            break;
-         case 39:
-            arrowKey = "right";
-            break;
-         case 40:
-            arrowKey = "down";
-            break;
-         default:
-            break;
-      }
-   }
+                default:
+                    break;
+            }
+        }()
+        /* 配色方案 */
+    const theme = {
+        /**
+         * 0: 棋盘浅色, 1: 棋盘深色, 2: 背景浅色, 3: 边框深色, 4: 蛇身颜色, 5: 蛇头颜色, 6: 苹果颜色
+         * @param {*} choice 选择颜色对应的数字
+         * @returns 一个带#的颜色字符
+         */
+        color: function(choice) {
+            return this.allColors[setting.themeNum][choice];
+        },
+        allColors: [
+            ["#C7CDFF", "#83B6FD", "#248AD5", "#0E6AAB", "#FFAA40", "#FF6C02", "#FF005D"]
+        ], //0: 棋盘浅色, 1: 棋盘深色, 2: 背景浅色, 3: 边框深色, 4: 蛇身颜色, 5: 蛇头颜色, 6: 苹果颜色
+    }
 </script>
 <script src="js/bgDrawing.js"></script>
 <script src="js/clarity.js"></script>
+<script>
+    window.game = new GAME(1, setting.intervalTime);
+
+    /* div: 玩家按键 */
+    window.onkeydown = function(e) {
+        let k = e.keyCode;
+        switch (k) {
+            case 37:
+                game._snake[0].nextArrowKey = SNAKE.arrowKey.left;
+                break;
+            case 38:
+                game._snake[0].nextArrowKey = SNAKE.arrowKey.up;
+                break;
+            case 39:
+                game._snake[0].nextArrowKey = SNAKE.arrowKey.right;
+                break;
+            case 40:
+                game._snake[0].nextArrowKey = SNAKE.arrowKey.down;
+                break;
+            case 32:
+                if (game._end) game.start();
+                else game.pauseORresume();
+                break;
+
+            default:
+                break;
+        }
+    }
+</script>
 
 </html>

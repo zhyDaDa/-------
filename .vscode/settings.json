@@ -1,0 +1,6 @@
+{
+    "editor.accessibilitySupport": "on",
+    "editor.autoIndent": "full",
+    "editor.multiCursorPaste": "spread",
+    "editor.formatOnPaste": true
+}
