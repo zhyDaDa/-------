@@ -27,7 +27,7 @@
     }
 
     //刷上背景油漆
-    document.getElementById("container_game").style.backgroundColor = theme.boardColor(2);
+    document.getElementById("container_game").style.backgroundColor = theme.boardColor(2) + "66";
     //修改边框的颜色
     document.getElementById("canvas_2").style.border = theme.boardColor(3) + " solid 30px";
 }(setting.width, setting.height)

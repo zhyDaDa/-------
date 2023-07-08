@@ -16,6 +16,16 @@
             background-color: white;
         }
         
+        #container_background {
+            position: fixed;
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            z-index: -99;
+        }
+        
         #container_game {
             position: fixed;
             padding: 0;
@@ -24,12 +34,23 @@
             display: flex;
         }
         
-        #infoBoard {
-            position: fixed;
+        #container_alerter {
+            background-color: #666666aa;
+            backdrop-filter: blur(5px);
             top: 0;
             left: 0;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+        }
+        
+        #infoBoard {
+            position: fixed;
+            top: 1vh;
+            left: 1vw;
             width: 100%;
             height: 100%;
+            border-radius: 5px;
             z-index: 5;
         }
         
@@ -38,8 +59,8 @@
             border-collapse: collapse;
             border: 1px solid transparent;
             border-radius: 2px;
-            background-color: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(1px);
+            background-color: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
             color: black;
             font-size: 18px;
             font-weight: bold;
@@ -60,10 +81,56 @@
             transform: translate(-150%, -50%);
         }
     </style>
+    <style>
+        .fade-in {
+            animation: fade-in .5s ease-out forwards;
+        }
+        
+        .fade-out {
+            animation: fade-out .5s ease-out forwards;
+        }
+        
+        @keyframes fade-in {
+            from {
+                display: none;
+                opacity: 0;
+            }
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+            to {
+                display: block;
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fade-out {
+            from {
+                display: block;
+                opacity: 1;
+            }
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+            to {
+                display: none;
+                opacity: 0;
+            }
+        }
+    </style>
 </head>
 
 <body id="body">
-    <div id="container_game" style="z-index: 1;">
+    <div id="container_background" style="z-index: -99;">
+        <object data="background.html" width="100%" height="100%"></object>
+    </div>
+    <div id="container_game" style="z-index: 1; opacity: 0; pointer-events: none;">
         <div id="infoBoard">
             <table>
                 <tr>
@@ -100,7 +167,365 @@
 
     </div>
 
-    <div id="container_hall"></div>
+    <div id="container_hall" style="display: block;">
+        <style type="text/css">
+            .shadow-line {
+                position: absolute;
+                left: 0px;
+                top: 0px;
+                height: 20px;
+                width: 120vw;
+                background: #999;
+                z-index: 99;
+                background: linear-gradient(90deg, #ffffffdd 50px, #00000000 50px) repeat-x;
+                background-size: 100px;
+                transform: matrix(1.2, 0, -11.6, 8, 0, 30);
+                animation: shadow-line 6s linear infinite;
+            }
+            
+            @keyframes shadow-line {
+                0% {
+                    transform: matrix(1.2, 0, -11.6, 8, 0, 30) translateX(-100px)
+                }
+                100% {
+                    transform: matrix(1.2, 0, -11.6, 8, 0, 30) translateX(0px)
+                }
+            }
+            
+            #prompt-word {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 8vh;
+                line-height: 8vh;
+                text-align: center;
+                height: 8vh;
+                width: 100%;
+                color: #e8eef2;
+                opacity: 0;
+                z-index: 9999;
+                animation: prompt-word 2s ease-out forwards;
+                animation-delay: 0.5s;
+                pointer-events: none;
+            }
+            
+            @keyframes prompt-word {
+                0% {
+                    opacity: 0;
+                }
+                30% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 1;
+                }
+                100% {
+                    opacity: 0;
+                }
+            }
+            
+            .shadow-line-container {
+                position: fixed;
+                height: 18vh;
+                width: 60%;
+                z-index: 99;
+                overflow: hidden;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+            }
+            
+            #shadow-line-container-1 {
+                animation: shadow-line-container-1 2.4s ease-out forwards;
+            }
+            
+            #shadow-line-container-2 {
+                animation: shadow-line-container-2 2.4s ease-out forwards;
+            }
+            
+            @keyframes shadow-line-container-1 {
+                0% {
+                    top: 50%;
+                    height: 18vh;
+                }
+                30% {
+                    top: 40%;
+                    height: 8vh;
+                    width: 100%;
+                }
+                70% {
+                    top: 40%;
+                    height: 8vh;
+                    width: 100%;
+                }
+                100% {
+                    top: 10%;
+                    height: 12vh;
+                    width: 100%;
+                }
+            }
+            
+            @keyframes shadow-line-container-2 {
+                0% {
+                    top: 50%;
+                    height: 18vh;
+                }
+                30% {
+                    top: 60%;
+                    height: 8vh;
+                    width: 100%;
+                }
+                70% {
+                    top: 60%;
+                    height: 8vh;
+                    width: 100%;
+                }
+                100% {
+                    top: 90%;
+                    height: 12vh;
+                    width: 100%;
+                }
+            }
+            
+            @keyframes fadeIn {
+                0% {
+                    opacity: 0
+                }
+                to {
+                    opacity: 1
+                }
+            }
+        </style>
+        <div class="shadow-line-container" id="shadow-line-container-1">
+            <div class="shadow-line" id="shadow-line-1"></div>
+        </div>
+        <div class="shadow-line-container" id="shadow-line-container-2">
+            <div class="shadow-line" id="shadow-line-2"></div>
+        </div>
+        <div id="prompt-word">贪吃蛇 多人联机版</div>
+        <style>
+            #panel-container {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                width: 60vw;
+                height: 45vh;
+                transform: translate(-50%, -50%);
+                background-color: #248AD5aa;
+                backdrop-filter: blur(10px);
+                border-radius: 2vh;
+                z-index: 9;
+                display: flex;
+                flex-wrap: wrap;
+                align-content: center;
+            }
+            
+            #panel-container button {
+                width: 20vw;
+                height: 20vh;
+                border-radius: 5vh;
+                padding: 10px 25px;
+                font-family: 'Lato', sans-serif;
+                font-weight: 500;
+                font-size: 16px;
+                background: transparent;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                position: relative;
+                display: inline-block;
+                box-shadow: inset 2px 2px 2px 0px rgba(255, 255, 255, .5), inset -7px -7px 10px 0px rgba(0, 0, 0, .1), 7px 7px 20px 0px rgba(0, 0, 0, .1), 4px 4px 5px 0px rgba(0, 0, 0, .1);
+                text-shadow: 2px 2px 3px rgba(255, 255, 255, .5), -4px -4px 6px rgba(116, 125, 136, .2);
+                outline: none;
+                border: none;
+                overflow: hidden;
+                color: #0cbcff;
+            }
+            
+            #panel-container button:after {
+                position: absolute;
+                content: " ";
+                z-index: -1;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: #5fe0fd;
+                transition: all 0.3s ease;
+            }
+            
+            #panel-container button:hover {
+                background: transparent;
+                box-shadow: 4px 4px 6px 0 rgba(255, 255, 255, .5), -4px -4px 6px 0 rgba(116, 125, 136, .2), inset -4px -4px 6px 0 rgba(255, 255, 255, .5), inset 4px 4px 6px 0 rgba(116, 125, 136, .3);
+                color: #fff;
+            }
+            
+            #panel-container button:hover:after {
+                -webkit-transform: scale(2) rotate(180deg);
+                transform: scale(2) rotate(180deg);
+                box-shadow: 4px 4px 6px 0 rgba(255, 255, 255, .5), -4px -4px 6px 0 rgba(116, 125, 136, .2), inset -4px -4px 6px 0 rgba(255, 255, 255, .5), inset 4px 4px 6px 0 rgba(116, 125, 136, .3);
+            }
+            
+            #panel-container panel {
+                opacity: 0;
+                pointer-events: none;
+            }
+            
+            #panel-choice {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                justify-content: space-around;
+            }
+        </style>
+        <div id="panel-container">
+            <panel id="panel-choice">
+                <button onclick="goToGame()">本地单人</button>
+                <button>多人联机</button>
+            </panel>
+            <panel id="panel-single">
+                <form action="goToGame()">
+                    <input type="text" name="name" placeholder="请输入昵称">
+                    <input type="submit" value="开始游戏">
+                </form>
+            </panel>
+        </div>
+    </div>
+
+    <div id="container_alerter" style="z-index: 99999; opacity: 1; pointer-events: auto;">
+        <style>
+            #alerter {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 60vw;
+                height: 50vh;
+                color: #eee;
+                background-color: #248AD5;
+                border-radius: 2vh;
+                display: flex;
+                z-index: 99999999999;
+                flex-wrap: wrap;
+                flex-direction: column;
+            }
+            
+            #alerter>* {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+            
+            #alerter_button {
+                width: 130px;
+                height: 40px;
+                color: #fff;
+                border-radius: 50px;
+                padding: 10px 25px;
+                font-family: 'Lato', sans-serif;
+                font-weight: 500;
+                font-size: 16px;
+                background: transparent;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                position: relative;
+                display: inline-block;
+                box-shadow: inset 2px 2px 2px 0px rgba(255, 255, 255, .5), inset -7px -7px 10px 0px rgba(0, 0, 0, .1), 7px 7px 20px 0px rgba(0, 0, 0, .1), 4px 4px 5px 0px rgba(0, 0, 0, .1);
+                text-shadow: 2px 2px 3px rgba(255, 255, 255, .5), -4px -4px 6px rgba(116, 125, 136, .2);
+                outline: none;
+                color: rgba(2, 126, 251, 1);
+                background: rgba(118, 174, 241, 1);
+                width: 130px;
+                height: 40px;
+                line-height: 42px;
+                padding: 0;
+                border: none;
+            }
+            
+            #alerter_button span {
+                position: relative;
+                display: block;
+                width: 100%;
+                height: 100%;
+                text-align: center;
+            }
+            
+            #alerter_button:before,
+            #alerter_button:after {
+                position: absolute;
+                content: "";
+                right: 0;
+                top: 0;
+                background: #ddddddaa;
+                transition: all 0.3s ease;
+            }
+            
+            #alerter_button:before {
+                height: 0%;
+                width: 2px;
+            }
+            
+            #alerter_button:after {
+                width: 0%;
+                height: 2px;
+            }
+            
+            #alerter_button:hover {
+                background: transparent;
+                box-shadow: none;
+            }
+            
+            #alerter_button:hover:before {
+                height: 100%;
+            }
+            
+            #alerter_button:hover:after {
+                width: 100%;
+            }
+            
+            #alerter_button span:hover {
+                color: #eeeeeeaa;
+            }
+            
+            #alerter_button span:before,
+            #alerter_button span:after {
+                position: absolute;
+                content: "";
+                left: 0;
+                bottom: 0;
+                background: #ddddddaa;
+                transition: all 0.3s ease;
+            }
+            
+            #alerter_button span:before {
+                width: 2px;
+                height: 0%;
+            }
+            
+            #alerter_button span:after {
+                width: 0%;
+                height: 2px;
+            }
+            
+            #alerter_button span:hover:before {
+                height: 100%;
+            }
+            
+            #alerter_button span:hover:after {
+                width: 100%;
+            }
+        </style>
+        <div id="alerter">
+            <div id="alerter_title" style="flex: 1;">提示</div>
+            <hr>
+            <div id="alerter_content" style="flex: 6;">这是一个提示</div>
+            <div style="flex: 2;">
+                <button id="alerter_button" onclick="hideElement(document.getElementById('container_alerter'))">
+                    <span>关闭此面板</span></button>
+            </div>
+        </div>
+    </div>
 
 </body>
 <script>
@@ -150,31 +575,72 @@
         wallColor: "#000000", //墙颜色
 
     }
+
+    /* 全局函数 */
+    function hideElement(element) {
+        // 判断class中是否包含"fade-out", 没有就添加, 同时去除"fade-in"(如果有的话)
+        if (element.className.indexOf("fade-out") == -1) {
+            element.className = " fade-out";
+        }
+        element.style.pointerEvents = "none";
+
+    }
+
+    function showElement(element) {
+        element.className = " fade-in";
+        element.style.pointerEvents = "auto";
+    }
+
+
+    function hideAllPanel() {
+        document.querySelectorAll("#panel-container panel").forEach(element => {
+            hideElement(element);
+        });
+    }
+
+    function showPanel(panelId) {
+        let panelElement = document.querySelector("panel#" + panelId);
+        showElement(panelElement);
+    }
+
+    function goToGame() {
+        hideElement(document.getElementById("container_hall"));
+        showElement(document.getElementById("container_game"));
+        window.game = new GAME(1, setting.intervalTime);
+        let bbb = document.createElement("button");
+        document.getElementsByTagName("body")[0].appendChild(bbb);
+        bbb.focus();
+        game.start();
+    }
 </script>
 <script src="js/bgDrawing.js"></script>
 <script src="js/clarity.js"></script>
 <script>
-    window.game = new GAME(1, setting.intervalTime);
+    window.setTimeout(() => {
+        showPanel('panel-choice')
+    }, 2000);
 
     /* div: 玩家按键 */
     window.onkeydown = function(e) {
         let k = e.keyCode;
         switch (k) {
             case 37:
-                game._snakes[0].nextArrowKey = TYPE_arrowKey.left;
+                window.game._snakes[0].nextArrowKey = TYPE_arrowKey.left;
                 break;
             case 38:
-                game._snakes[0].nextArrowKey = TYPE_arrowKey.up;
+                window.game._snakes[0].nextArrowKey = TYPE_arrowKey.up;
                 break;
             case 39:
-                game._snakes[0].nextArrowKey = TYPE_arrowKey.right;
+                window.game._snakes[0].nextArrowKey = TYPE_arrowKey.right;
                 break;
             case 40:
-                game._snakes[0].nextArrowKey = TYPE_arrowKey.down;
+                window.game._snakes[0].nextArrowKey = TYPE_arrowKey.down;
                 break;
             case 32:
-                if (game._end) game.start();
-                else game.pauseORresume();
+                if (window.game._end) {
+                    alert(game._end);
+                    window.game.start();
+                } else window.game.pauseORresume();
                 break;
 
             default:
