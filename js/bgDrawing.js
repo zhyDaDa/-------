@@ -1,5 +1,5 @@
 //此处展开结界
-!function (setting_w, setting_h) {
+! function(setting_w, setting_h) {
     //Set the canvas
     const cvs = document.getElementById("canvas_2");
     const ctx = cvs.getContext("2d");
@@ -14,7 +14,7 @@
 
     function DrawBox(x, y, w, h) {
         //相邻格子分配深浅两种颜色
-        let b = (x + y) % 2 == 0 ? theme.color(0) : theme.color(1);
+        let b = (x + y) % 2 == 0 ? theme.boardColor(0) : theme.boardColor(1);
         ctx.fillStyle = b;
         ctx.fillRect(x * w, y * h, w, h);
     }
@@ -27,7 +27,7 @@
     }
 
     //刷上背景油漆
-    document.getElementById("body").style.backgroundColor = theme.color(2);
+    document.getElementById("container_game").style.backgroundColor = theme.boardColor(2);
     //修改边框的颜色
-    document.getElementById("canvas_2").style.border = theme.color(3)+" solid 30px";
+    document.getElementById("canvas_2").style.border = theme.boardColor(3) + " solid 30px";
 }(setting.width, setting.height)

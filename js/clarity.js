@@ -107,7 +107,7 @@ class MAP {
                 const w = setting.wall[i];
                 this._map[w[1] - 1][w[0] - 1] = {
                     occupy: TYPE_occupy.wall,
-                    color: theme.color(3)
+                    color: theme.wallColor,
                 };
             }
         }
@@ -120,18 +120,32 @@ class MAP {
                 drawSquare(j, i, this._map[i][j].color);
             }
         }
+    }
 
+    consoleMap() {
+        let str = "\n";
+        for (let i = 0; i < setting.height; i++) {
+            str += "\t";
+            for (let j = 0; j < setting.width; j++) {
+                str += this._map[i][j].occupy;
+                str += "  ";
+            }
+            str += "\n";
+        }
+        console.log(str);
     }
 }
 
 class SNAKE {
-    constructor(playerConsequenceNumber) {
+    constructor(playerConsequenceNumber, name) {
         this._playerConsequenceNumber = playerConsequenceNumber;
+        this._name = name;
         this._snake = [];
         this._buffs = [];
         this._score = 0;
-        this.nextArrowKey = null;
+        this.nextArrowKey = TYPE_arrowKey.right;
         this.initPosition();
+        this.registInfo();
     }
 
     /**
@@ -178,27 +192,43 @@ class SNAKE {
                 ];
                 break;
             default:
-                alert("玩家序号错误或超出上限");
+                console.error("玩家序号错误或超出上限");
                 break;
         }
         //todo: 根据地图更合理的排位方式
-        this.nextArrowKey = TYPE_arrowKey.right;
     }
 
     getNextLocation() {
         let nextLocation = deepCopy(this._snake[0]);
+        let thisSnake = this._snake[0];
+
+        function _moveUP() {
+            nextLocation.y = thisSnake.y == 1 ? setting.height : thisSnake.y - 1
+        }
+
+        function _moveDown() {
+            nextLocation.y = thisSnake.y == setting.height ? 1 : thisSnake.y + 1
+        }
+
+        function _moveLeft() {
+            nextLocation.x = thisSnake.x == 1 ? setting.width : thisSnake.x - 1
+        }
+
+        function _moveRight() {
+            nextLocation.x = thisSnake.x == setting.width ? 1 : thisSnake.x + 1
+        }
         switch (this.nextArrowKey) {
             case TYPE_arrowKey.up:
-                if (this._snake[1].y - this._snake[0].y == 1 || this._snake[1].y - this._snake[0].y == setting.height - 1) { nextLocation.y += 1 } else { nextLocation.y = this._snake[0].y == 1 ? setting.height : this._snake[0].y - 1 }
+                if (this._snake[1].y - thisSnake.y == -1 || this._snake[1].y - thisSnake.y == setting.height - 1) { _moveDown() } else { _moveUP() }
                 break;
             case TYPE_arrowKey.down:
-                if (this._snake[1].y - this._snake[0].y == -1 || this._snake[1].y - this._snake[0].y == 1 - setting.height) { nextLocation.y -= 1 } else { nextLocation.y = this._snake[0].y == setting.height ? 1 : this._snake[0].y + 1 }
+                if (this._snake[1].y - thisSnake.y == 1 || this._snake[1].y - thisSnake.y == 1 - setting.height) { _moveUP() } else { _moveDown() }
                 break;
             case TYPE_arrowKey.left:
-                if (this._snake[1].x - this._snake[0].x == -1 || this._snake[1].x - this._snake[0].x == setting.width - 1) { nextLocation.x += 1 } else { nextLocation.x = this._snake[0].x == 1 ? setting.width : this._snake[0].x - 1 }
+                if (this._snake[1].x - thisSnake.x == -1 || this._snake[1].x - thisSnake.x == setting.width - 1) { _moveRight() } else { _moveLeft() }
                 break;
             case TYPE_arrowKey.right:
-                if (this._snake[1].x - this._snake[0].x == 1 || this._snake[1].x - this._snake[0].x == 1 - setting.width) { nextLocation.x -= 1 } else { nextLocation.x = this._snake[0].x == setting.width ? 1 : this._snake[0].x + 1 }
+                if (this._snake[1].x - thisSnake.x == 1 || this._snake[1].x - thisSnake.x == 1 - setting.width) { _moveLeft() } else { _moveRight() }
                 break;
             default:
                 console.error("没有定义的方向: " + this.nextArrowKey);
@@ -211,10 +241,11 @@ class SNAKE {
      * 按照arrowkey的指向移动蛇
      * 如果反向就不会有反应, 与现状相比做判断
      */
-    move(arrowKey) {
+    move() {
+        let nextLocation = this.getNextLocation();
         for (let i = this._snake.length - 1; i > -1; i--) {
             if (i == 0) { //对于蛇头
-                this._snake[0] = this.getNextLocation(arrowKey);
+                this._snake[0] = nextLocation;
             } else { //对于蛇身
                 this._snake[i] = deepCopy(this._snake[i - 1], false); //把后面的变成自己前面的        
             }
@@ -225,12 +256,30 @@ class SNAKE {
      * 把snake画到map上
      */
     settleToMap(map) {
-        for (let i = 0; i < this._snake.length; i++) {
+        for (let i = this._snake.length - 1; i > -1; i--) {
             const theSnake = this._snake[i];
             let theSnakeLoc = map[theSnake.y - 1][theSnake.x - 1];
             theSnakeLoc.occupy = i == 0 ? 1 : 2;
-            theSnakeLoc.color = theme.color(i == 0 ? 5 : 4);
+            theSnakeLoc.color = theme.snakeColors[this._playerConsequenceNumber - 1][i == 0 ? 0 : 1];
         }
+    }
+
+    registInfo() {
+        // 指定DOM元素
+        let tr_element = document.getElementsByClassName("player-info")[this._playerConsequenceNumber - 1];
+        let name_element = tr_element.getElementsByClassName("name")[0];
+        let score_element = tr_element.getElementsByClassName("score")[0];
+        let length_element = tr_element.getElementsByClassName("length")[0];
+
+        // 修改DOM元素, 填写信息
+        name_element.innerHTML = this._name;
+        score_element.innerHTML = this._score;
+        length_element.innerHTML = this._snake.length;
+
+        // 为元素染色
+        name_element.style.backgroundColor = theme.snakeColors[this._playerConsequenceNumber - 1][0];
+        score_element.style.backgroundColor = theme.snakeColors[this._playerConsequenceNumber - 1][1];
+        length_element.style.backgroundColor = theme.snakeColors[this._playerConsequenceNumber - 1][1];
     }
 
     eatApple() {
@@ -249,10 +298,14 @@ class SNAKE {
         for (buff of this._buffs) {
             if (buff.type == BUFF.TYPE.ScoreModifier) buff.effect(score);
         }
+        this._score += score;
+        this.registInfo();
     }
 
     lengthen() {
-        //todo: 蛇变长, 原理同蛇移动时找新位置
+        let newTail = deepCopy(this._snake[this._snake.length - 1]);
+        this._snake.push(newTail);
+        this.registInfo();
     }
 
     die() {
@@ -302,7 +355,7 @@ class APPLE {
     settleApple(map) {
         let appleLoc = map[this._location.y - 1][this._location.x - 1];
         appleLoc.occupy = 3;
-        appleLoc.color = theme.color(6);
+        appleLoc.color = theme.appleColor;
     }
 
     /**
@@ -310,7 +363,7 @@ class APPLE {
      */
     refreshApple(map) {
         this.getNewLoc();
-        if (map[this._location.y - 1][this._location.x - 1].occupy != 0) this.refreshApple();
+        if (map[this._location.y - 1][this._location.x - 1].occupy != 0) this.refreshApple(map);
     }
 
     reset(map) {
@@ -350,7 +403,7 @@ class GAME {
         this._end = false;
 
         this.interval = setInterval(() => {
-            if (!this._pause) {
+            if (!this._pause && !this._end) {
                 this.core();
             }
         }, this._intervalTime * 1000);
@@ -398,10 +451,11 @@ class GAME {
 
     //core
     core() {
-        this._MAP.refreshMap();
         //检查按照移动方向的下一步的collation
         let results = this.checkSituation();
         let appleRestFlag = false;
+        //清空地图, 开始制作新的一帧
+        this._MAP.refreshMap();
         for (let i = 0; i < results.length; i++) {
             let result = results[i];
             let snake = this._snakes[i];
