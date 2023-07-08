@@ -98,7 +98,7 @@ class MAP {
                 this._map[i] = [];
                 for (let j = 0; j < setting.width; j++) {
                     this._map[i][j] = {
-                        occupy: this.occupyType.empty,
+                        occupy: TYPE_occupy.empty,
                         color: "transparent",
                     };
                 }
@@ -106,7 +106,7 @@ class MAP {
             for (let i = 0; i < setting.wall.length; i++) {
                 const w = setting.wall[i];
                 this._map[w[1] - 1][w[0] - 1] = {
-                    occupy: this.occupyType.wall,
+                    occupy: TYPE_occupy.wall,
                     color: theme.color(3)
                 };
             }
@@ -180,31 +180,24 @@ class SNAKE {
             default:
                 alert("玩家序号错误或超出上限");
                 break;
-                this.nextArrowKey = this.arrowKey.right;
         }
         //todo: 根据地图更合理的排位方式
-    }
-
-    arrowKey = {
-        up: 0,
-        down: 1,
-        left: 2,
-        right: 3
+        this.nextArrowKey = TYPE_arrowKey.right;
     }
 
     getNextLocation() {
         let nextLocation = deepCopy(this._snake[0]);
         switch (this.nextArrowKey) {
-            case this.arrowKey.up:
+            case TYPE_arrowKey.up:
                 if (this._snake[1].y - this._snake[0].y == 1 || this._snake[1].y - this._snake[0].y == setting.height - 1) { nextLocation.y += 1 } else { nextLocation.y = this._snake[0].y == 1 ? setting.height : this._snake[0].y - 1 }
                 break;
-            case this.arrowKey.down:
+            case TYPE_arrowKey.down:
                 if (this._snake[1].y - this._snake[0].y == -1 || this._snake[1].y - this._snake[0].y == 1 - setting.height) { nextLocation.y -= 1 } else { nextLocation.y = this._snake[0].y == setting.height ? 1 : this._snake[0].y + 1 }
                 break;
-            case this.arrowKey.left:
+            case TYPE_arrowKey.left:
                 if (this._snake[1].x - this._snake[0].x == -1 || this._snake[1].x - this._snake[0].x == setting.width - 1) { nextLocation.x += 1 } else { nextLocation.x = this._snake[0].x == 1 ? setting.width : this._snake[0].x - 1 }
                 break;
-            case this.arrowKey.right:
+            case TYPE_arrowKey.right:
                 if (this._snake[1].x - this._snake[0].x == 1 || this._snake[1].x - this._snake[0].x == 1 - setting.width) { nextLocation.x -= 1 } else { nextLocation.x = this._snake[0].x == setting.width ? 1 : this._snake[0].x + 1 }
                 break;
             default:
@@ -219,11 +212,11 @@ class SNAKE {
      * 如果反向就不会有反应, 与现状相比做判断
      */
     move(arrowKey) {
-        for (let i = 0; i < this._snake.length; i++) {
+        for (let i = this._snake.length - 1; i > -1; i--) {
             if (i == 0) { //对于蛇头
                 this._snake[0] = this.getNextLocation(arrowKey);
             } else { //对于蛇身
-                this._snake[this._snake.length - i - 1] = deepCopy(this._snake[this._snake.length - i - 2], false); //把后面的变成自己前面的        
+                this._snake[i] = deepCopy(this._snake[i - 1], false); //把后面的变成自己前面的        
             }
         } //for循环
     }
@@ -287,11 +280,6 @@ class BUFF {
         this._properties = [];
         this._description = "";
     }
-    TYPE = {
-        ScoreModifier: 0,
-        MovementModifier: 1,
-        PropertyModifier: 2,
-    }
 }
 
 class APPLE {
@@ -352,6 +340,7 @@ class GAME {
         }
         this._MAP = new MAP();
         this._map = this._MAP._map;
+        this._apples = [];
         this._apples.push(new APPLE(this._map));
     }
 
@@ -384,30 +373,23 @@ class GAME {
         this._pause = !this._pause;
     }
 
-    situation = {
-        none: 0,
-        eatApple: 1,
-        collideWall: 2,
-        collideSnake: 3,
-    }
-
     checkSituation() {
         let results = this._snakes.map((snake, index) => {
             let nextLocation = snake.getNextLocation();
             let mapOccupation = this._map[nextLocation.y - 1][nextLocation.x - 1].occupy;
             switch (mapOccupation) {
-                case MAP.occupyType.empty:
-                    return this.situation.none;
-                case MAP.occupyType.apple:
-                    return this.situation.eatApple;
-                case MAP.occupyType.snake:
-                    return this.situation.collideSnake;
-                case MAP.occupyType.wall:
-                    return this.situation.collideWall;
+                case TYPE_occupy.empty:
+                    return TYPE_situation.none;
+                case TYPE_occupy.apple:
+                    return TYPE_situation.eatApple;
+                case TYPE_occupy.snake:
+                    return TYPE_situation.collideSnake;
+                case TYPE_occupy.wall:
+                    return TYPE_situation.collideWall;
 
                 default:
                     console.error(`Error: 第${index}条蛇遇到了 unknown map occupation type`);
-                    return this.situation.none;
+                    return TYPE_situation.none;
             }
         });
         return results;
@@ -416,21 +398,24 @@ class GAME {
 
     //core
     core() {
+        this._MAP.refreshMap();
         //检查按照移动方向的下一步的collation
         let results = this.checkSituation();
         let appleRestFlag = false;
         for (let i = 0; i < results.length; i++) {
-            result = results[i];
-            snake = this._snakes[i];
+            let result = results[i];
+            let snake = this._snakes[i];
             switch (result) {
-                case this.situation.eatApple:
+                case TYPE_situation.eatApple:
                     snake.eatApple();
                     appleRestFlag = true;
                     break;
-                case this.situation.collideSnake:
-                case this.situation.collideWall:
+                case TYPE_situation.collideSnake:
+                case TYPE_situation.collideWall:
                     snake.die();
                     this.end();
+                    break;
+                case TYPE_situation.none:
                     break;
                 default:
                     console.error(`Error: 未知的情况 ${result}`);
@@ -441,8 +426,9 @@ class GAME {
         }
 
         if (appleRestFlag) {
-            this._apples[0].reset(this._map);
+            this._apples[0].refreshApple(this._map);
         }
+        this._apples[0].settleApple(this._map);
         //先把地图擦干净
         ctx.clearRect(0, 0, cvs_w, cvs_h);
         //把map数组渲染出来
@@ -462,10 +448,27 @@ const cvs_w = cvs.width,
     h = cvs_h / setting.height;
 
 /* div: 枚举 */
-const occupyType = {
+const TYPE_occupy = {
     empty: 0,
     snakeHead: 1,
     snakeBody: 2,
     apple: 3,
     wall: 4,
+}
+const TYPE_arrowKey = {
+    up: 0,
+    down: 1,
+    left: 2,
+    right: 3
+}
+const TYPE_buff = {
+    ScoreModifier: 0,
+    MovementModifier: 1,
+    PropertyModifier: 2,
+}
+const TYPE_situation = {
+    none: 0,
+    eatApple: 1,
+    collideWall: 2,
+    collideSnake: 3,
 }

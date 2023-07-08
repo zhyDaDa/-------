@@ -95,16 +95,16 @@
         let k = e.keyCode;
         switch (k) {
             case 37:
-                game._snake[0].nextArrowKey = SNAKE.arrowKey.left;
+                game._snakes[0].nextArrowKey = TYPE_arrowKey.left;
                 break;
             case 38:
-                game._snake[0].nextArrowKey = SNAKE.arrowKey.up;
+                game._snakes[0].nextArrowKey = TYPE_arrowKey.up;
                 break;
             case 39:
-                game._snake[0].nextArrowKey = SNAKE.arrowKey.right;
+                game._snakes[0].nextArrowKey = TYPE_arrowKey.right;
                 break;
             case 40:
-                game._snake[0].nextArrowKey = SNAKE.arrowKey.down;
+                game._snakes[0].nextArrowKey = TYPE_arrowKey.down;
                 break;
             case 32:
                 if (game._end) game.start();
