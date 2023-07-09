@@ -6,6 +6,7 @@ def setInterval(function, interval):
     def wrapper():
         function()
         setInterval(function, interval)  # 递归调用自身，实现循环执行
+
     timer = threading.Timer(interval, wrapper)
     timer.start()
     return timer
@@ -58,6 +59,19 @@ class MAP:
     def __repr__(self):
         return self._map
 
+    def __getitem__(self):
+        return self._map
+
+    def __str__(self):
+        str_map = "\n"
+        for i in range(setting.height):
+            str_map += "\t"
+            for j in range(setting.width):
+                str_map += self._map[i][j]['occupy']
+                str_map += "  "
+            str_map += "\n"
+        return str_map
+
     def refreshMap(self):
         for i in range(setting.height):
             self._map.append([])
@@ -68,20 +82,12 @@ class MAP:
             self._map[w[1] - 1][w[0] - 1] = TYPE_occupy.wall
 
     def consoleMap(self):
-        str = "\n"
-        for i in range(setting.height):
-            str += "\t"
-            for j in range(setting.width):
-                str += self._map[i][j]['occupy']
-                str += "  "
-            str += "\n"
-        print(str)
+        print(str(self))
 
 
 class SNAKE:
-    def __init__(self, playerConsequenceNumber, name):
+    def __init__(self, playerConsequenceNumber):
         self._playerConsequenceNumber = playerConsequenceNumber
-        self._name = name
         self._snake = []
         self._buffs = []
         self._score = 0
@@ -157,7 +163,7 @@ class SNAKE:
             TYPE_arrowKey.right: lambda: _moveRight()
         }
         switch.get(self.nextArrowKey, lambda: print(
-            "没有定义的方向: " + self.nextArrowKey))()
+            "没有定义的方向"))()
         return nextLocation
 
     def move(self):
@@ -172,7 +178,7 @@ class SNAKE:
         for i in range(len(self._snake) - 1, -1, -1):
             theSnake = self._snake[i]
             map[theSnake["y"] - 1][theSnake["x"] - 1] = (
-                self._playerConsequenceNumber*10+1) if i == 0 else (self._playerConsequenceNumber*10+2)
+                    self._playerConsequenceNumber * 10 + 1) if i == 0 else (self._playerConsequenceNumber * 10 + 2)
 
     def eatApple(self):
         self.changeScore(setting.appleScore)
@@ -202,9 +208,9 @@ class SNAKE:
 
 
 class BUFF:
-    def __init__(self, buffName, type, effect):
+    def __init__(self, buffName, buffType, effect):
         self._buffName = buffName
-        self._type = type
+        self._type = buffType
         self._effect = effect  # effect 接受的参数: score, object(其余可直接this获得)
         self._properties = []
         self._description = ""
@@ -240,6 +246,7 @@ class GAME:
         self._map = []
         self._pause = True
         self._end = True
+        self.interval = None
         self._intervalTime = intervalTime
         self.init()
 
@@ -249,8 +256,7 @@ class GAME:
         self._snakes = []
         for i in range(self._playerCount):
             self._snakes.append(SNAKE(i + 1))
-        self._MAP = MAP()
-        self._map = self._MAP._map
+        self._map = MAP()
         self._apples = []
         self._apples.append(APPLE(self._map))
 
@@ -296,7 +302,7 @@ class GAME:
         elif mapOccupation == TYPE_occupy.wall:
             return TYPE_situation.collideWall
         else:
-            print(f"Error: 第{index+1}条蛇遇到了 unknown map occupation type")
+            print(f"Error: 第{index + 1}条蛇遇到了 unknown map occupation type")
             return TYPE_situation.none
 
     def core(self):
