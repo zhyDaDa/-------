@@ -2,25 +2,38 @@ import random
 import threading
 
 
-def setInterval(function, interval):
-    def wrapper():
-        function()
-        setInterval(function, interval)  # 递归调用自身，实现循环执行
-
-    timer = threading.Timer(interval, wrapper)
-    timer.start()
-    return timer
+import threading
 
 
-def clearInterval(timer):
-    timer.cancel()
+class RepeatedTimer:
+    def __init__(self, interval, function):
+        self.interval = interval
+        self.function = function
+        self.timer = None
+        self.is_running = False
 
+    def start(self):
+        if not self.is_running:
+            self.timer = threading.Timer(self.interval, self._run)
+            self.timer.start()
+            self.is_running = True
+
+    def _run(self):
+        self.function()
+        if self.is_running:
+            self.timer = threading.Timer(self.interval, self._run)
+            self.timer.start()
+
+    def stop(self):
+        self.is_running = False
+        self.timer.cancel()
 
 class setting:
     width = 16
     height = 16
     appleScore = 10
     intervalTime = 0.25
+    wall = []
 
 
 class TYPE_occupy:
@@ -59,8 +72,8 @@ class MAP:
     def __repr__(self):
         return self._map
 
-    def __getitem__(self):
-        return self._map
+    def __getitem__(self, y):
+        return self._map[y]
 
     def __str__(self):
         str_map = "\n"
@@ -93,7 +106,6 @@ class SNAKE:
         self._score = 0
         self.nextArrowKey = TYPE_arrowKey.right
         self.initPosition()
-        self.registInfo()
 
     def initPosition(self):
         switch = {
@@ -242,11 +254,11 @@ class GAME:
     def __init__(self, playerCount=1, intervalTime=0.25):
         self._playerCount = playerCount
         self._snakes = []
+        self._map = MAP()
         self._apples = []
-        self._map = []
         self._pause = True
         self._end = True
-        self.interval = None
+        self.timer = None
         self._intervalTime = intervalTime
         self.init()
 
@@ -265,7 +277,8 @@ class GAME:
         self._pause = False
         self._end = False
 
-        self.interval = setInterval(self.start_core, self._intervalTime * 1000)
+        self.timer = RepeatedTimer(self._intervalTime, self.start_core)
+        self.timer.start()
 
     def start_core(self):
         if not self._pause and not self._end:
@@ -273,7 +286,7 @@ class GAME:
 
     def end(self):
         self._end = True
-        clearInterval(self.interval)
+        self.timer.stop()
 
     def pause(self):
         self._pause = True
@@ -331,3 +344,9 @@ class GAME:
         if appleRestFlag:
             self._apples[0].refreshApple(self._map)
         self._apples[0].settleApple(self._map)
+
+        self._map.consoleMap()
+
+
+game = GAME()
+game.start()
