@@ -80,12 +80,12 @@ class MAP:
         for i in range(setting.height):
             str_map += "\t"
             for j in range(setting.width):
-                str_map += self._map[i][j]['occupy']
-                str_map += "  "
+                str_map += "%4d" % self._map[i][j]
             str_map += "\n"
         return str_map
 
     def refreshMap(self):
+        self._map = []
         for i in range(setting.height):
             self._map.append([])
             for j in range(setting.width):
@@ -304,13 +304,13 @@ class GAME:
 
     def get_results(self, snake, index):
         nextLocation = snake.getNextLocation()
-        mapOccupation = self._map[nextLocation.y - 1][nextLocation.x - 1]
+        mapOccupation = self._map[nextLocation["y"] - 1][nextLocation["x"] - 1]
 
         if mapOccupation == TYPE_occupy.empty:
             return TYPE_situation.none
         elif mapOccupation == TYPE_occupy.apple:
             return TYPE_situation.eatApple
-        elif mapOccupation == TYPE_occupy.snake:
+        elif mapOccupation == TYPE_occupy.snakeBody or mapOccupation == TYPE_occupy.snakeHead:
             return TYPE_situation.collideSnake
         elif mapOccupation == TYPE_occupy.wall:
             return TYPE_situation.collideWall
@@ -321,7 +321,7 @@ class GAME:
     def core(self):
         results = self.checkSituation()
         appleRestFlag = False
-        self._MAP.refreshMap()
+        self._map.refreshMap()
 
         for i in range(len(results)):
             result = results[i]
