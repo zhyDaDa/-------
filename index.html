@@ -381,7 +381,7 @@
         </style>
         <div id="panel-container">
             <panel id="panel-choice">
-                <button onclick="goToGame()">本地单人</button>
+                <button onclick="window.mode = 'single';goToGame()">本地单人</button>
                 <button>多人联机</button>
             </panel>
             <panel id="panel-single">
@@ -390,10 +390,14 @@
                     <input type="submit" value="开始游戏">
                 </form>
             </panel>
+            <panel id="panel-multipal">
+                <button onclick="hostGame()">host</button>
+                <button onclick="clientGame()">client</button>
+            </panel>
         </div>
     </div>
 
-    <div id="container_alerter" style="z-index: 99999; opacity: 1; pointer-events: auto;">
+    <div id="container_alerter" style="z-index: 99999; opacity: 0; pointer-events: none;">
         <style>
             #alerter {
                 position: fixed;
@@ -528,6 +532,7 @@
     </div>
 
 </body>
+<script src="js/jquery.js"></script>
 <script>
     /* div: 简易json */
     var setting = {
@@ -615,9 +620,10 @@
 </script>
 <script src="js/bgDrawing.js"></script>
 <script src="js/clarity.js"></script>
+<script src="js/online.js"></script>
 <script>
     window.setTimeout(() => {
-        showPanel('panel-choice')
+        showPanel('panel-multipal')
     }, 2000);
 
     /* div: 玩家按键 */
@@ -625,16 +631,16 @@
         let k = e.keyCode;
         switch (k) {
             case 37:
-                window.game._snakes[0].nextArrowKey = TYPE_arrowKey.left;
+                window.nextArrowKey = TYPE_arrowKey.left;
                 break;
             case 38:
-                window.game._snakes[0].nextArrowKey = TYPE_arrowKey.up;
+                window.nextArrowKey = TYPE_arrowKey.up;
                 break;
             case 39:
-                window.game._snakes[0].nextArrowKey = TYPE_arrowKey.right;
+                window.nextArrowKey = TYPE_arrowKey.right;
                 break;
             case 40:
-                window.game._snakes[0].nextArrowKey = TYPE_arrowKey.down;
+                window.nextArrowKey = TYPE_arrowKey.down;
                 break;
             case 32:
                 if (window.game._end) {
@@ -645,6 +651,9 @@
 
             default:
                 break;
+        }
+        if (window.mode == "single") {
+            window.game._snakes[0].nextArrowKey = window.nextArrowKey
         }
     }
 </script>

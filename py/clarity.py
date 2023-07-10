@@ -105,6 +105,7 @@ class SNAKE:
         self._buffs = []
         self._score = 0
         self.nextArrowKey = TYPE_arrowKey.right
+        self.buffUse = 0
         self.initPosition()
 
     def initPosition(self):
@@ -345,7 +346,7 @@ class GAME:
             self._apples[0].refreshApple(self._map)
         self._apples[0].settleApple(self._map)
 
-        self._map.consoleMap()
+        # self._map.consoleMap()
 
 
 game = GAME()

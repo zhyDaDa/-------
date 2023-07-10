@@ -97,10 +97,10 @@ def create_room():
     # 这里的data是一个字典, 包含创建该房间的房主host的id和名称
     data = request.get_json()
     name = data['name']
-    host_id = data['id']
 
     # 按照当前时间生成一个房间号
     room_id = int(time.time() % 1000000)
+    host_id = request.remote_addr.split('.')[-1]
 
     room = ROOM(room_id, host_id, name)
     ROOMS[room_id] = room
@@ -146,7 +146,8 @@ def join_room():
 def game_data():
     data = request.get_json()
     room_id = data['room']
-    player_id = data['id']
+    sendTime = data['sendTime']
+    player_id = request.remote_addr.split('.')[-1]
 
     room = ROOMS.get(room_id)
     if room:
@@ -178,6 +179,7 @@ def game_data():
             'playerInfo': player_info,
             'buffs': buffs,
             'isRoomExist': True,
+            'delay': int(time.time() * 1000 - sendTime),
         })
     else:
         return jsonify({
@@ -194,26 +196,26 @@ def game_data():
 def host_control():
     data = request.get_json()
     room_id = data['room']
-    player_id = data['id']
+    player_id = request.remote_addr.split('.')[-1]
     action = data['action']
 
-    class TYPE_action:
+    class TYPE_hostControl:
         start = 0
         pause = 1
         end = 2
 
     room = ROOMS.get(room_id)
     if room and room.host[0] == player_id:
-        if action == TYPE_action.start:
+        if action == TYPE_hostControl.start:
             room.start()
-        elif action == TYPE_action.pause:
+        elif action == TYPE_hostControl.pause:
             room.pause()
-        elif action == TYPE_action.end:
+        elif action == TYPE_hostControl.end:
             room.end()
 
         return jsonify({
             'success': True,
-            'message': '',
+            'message': '操作生效',
         })
     else:
         return jsonify({
@@ -226,7 +228,7 @@ def host_control():
 def player_control():
     data = request.get_json()
     room_id = data['room']
-    player_id = data['id']
+    player_id = request.remote_addr.split('.')[-1]
     next_arrow_key = data['nextArrowKey']
     buff_use = data['buffUse']
     current_time = data['time']
@@ -244,7 +246,7 @@ def player_control():
 
         return jsonify({
             'success': True,
-            'message': '',
+            'message': '操作生效',
             'timeDelay': time_delay
         })
     else:
@@ -259,10 +261,11 @@ def player_control():
 def inquire(room_id, player_id):
     room = ROOMS.get(room_id)
     if room:
-        if player_id == room.host:
+        player_consquence = getPlayerConsequence(room, player_id)
+        if player_consquence == 0:
             message = 'You are the host of this room'
             player_state = 'host'
-        elif player_id in room.clients:
+        elif player_consquence <= 3:
             message = 'You are a client in this room'
             player_state = 'client'
         else:
@@ -274,6 +277,9 @@ def inquire(room_id, player_id):
             'isRoomExist': True,
             'roomState': room.state,
             'playerState': player_state,
+            'roomID': room_id,
+            'playerID': player_id,
+            'startTime': room.start_time,
             'data': None,
             'error': False
         })
