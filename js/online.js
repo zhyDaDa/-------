@@ -1,27 +1,36 @@
-URL_HEAD = 'http://192.168.1.107:215/'
+// let serverIP = prompt('请输入服务器ip', '106');
+// URL_HEAD = `http://192.168.1.${(serverIP) * 1}:215/`
+
+function sendAlerter(message) {
+    console.log(message)
+}
 
 // 用ajax给create_room
 function createRoom(host_name) {
-    $.ajax({
-        type: 'post',
-        dataType: 'json',
-        data: JSON.stringify({ "name": host_name }),
-        url: URL_HEAD + 'create_room',
-        success: function(json_data) {
-            let message = json_data['message']
-            let isRoomExist = json_data['isRoomExist']
-            let playerState = json_data['playerState']
-            let roomID = json_data['roomID']
-            if (isRoomExist) {
-                sendAlerter('房间创建成功\n' + message)
-            } else {
-                sendAlerter('房间创建失败\n' + message)
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            type: 'post',
+            dataType: 'json',
+            data: JSON.stringify({ "name": host_name }),
+            url: URL_HEAD + 'create_room',
+            success: function(json_data) {
+                console.log(json_data)
+                let message = json_data['message']
+                let isRoomExist = json_data['isRoomExist']
+                let playerState = json_data['playerState']
+                let roomID = json_data['roomID']
+                let playerID = json_data['playerID']
+                if (isRoomExist) {
+                    sendAlerter('房间创建成功\n' + message)
+                } else {
+                    sendAlerter('房间创建失败\n' + message)
+                }
+                return [roomID, playerID]
+            },
+            fail: function(status) {
+                console.log(status)
             }
-            return [roomID, playerID]
-        },
-        fail: function(status) {
-            console.log(status)
-        }
+        })
     })
 }
 
@@ -60,7 +69,7 @@ function getGameData(roomID) {
         type: 'post',
         dataType: 'json',
         data: JSON.stringify({ "room": roomID, 'sendTime': new Date().getTime() }),
-        url: URL_HEAD + 'get_game_data',
+        url: URL_HEAD + 'game',
         success: function(json_data) {
             // let map = json_data['map']
             // let playerInfo = json_data['playerInfo']
@@ -175,10 +184,31 @@ function hostGame() {
 function clientGame() {
     hideElement(document.getElementById("container_hall"));
     showElement(document.getElementById("container_game"));
-    window.game = new GAME(1, setting.intervalTime);
+    window.game = new GAME(2, setting.intervalTime);
     let bbb = document.createElement("button");
     document.getElementsByTagName("body")[0].appendChild(bbb);
     bbb.focus();
+
+
+    prompt("请输入房间号")
+    let name = prompt("请输入你的昵称")
+    alert("游戏开始")
+
+    window.game._snakes[0]._name = 'host'
+    window.game._snakes[1]._name = name
+
+    window.game.start()
+
+
+
+
+    return true
+
+
+
+
+
+
     alert('作为客户端准备加入房间');
     let roomID = prompt('请输入房间号', 'roomID');
     let clientName = prompt('请输入你的昵称', 'name');

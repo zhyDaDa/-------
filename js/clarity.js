@@ -259,7 +259,7 @@ class SNAKE {
         for (let i = this._snake.length - 1; i > -1; i--) {
             const theSnake = this._snake[i];
             let theSnakeLoc = map[theSnake.y - 1][theSnake.x - 1];
-            theSnakeLoc.occupy = i == 0 ? 1 : 2;
+            theSnakeLoc.occupy = (i == 0 ? 1 : 2) + 10 * this._playerConsequenceNumber;
             theSnakeLoc.color = theme.snakeColors[this._playerConsequenceNumber - 1][i == 0 ? 0 : 1];
         }
     }

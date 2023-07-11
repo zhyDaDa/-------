@@ -75,11 +75,11 @@ class ROOM:
     #     self.frame_count += 1
 
 
-def getPlayerConsequence(rooms, myId):
-    if myId == rooms['host'][0]:
+def getPlayerConsequence(room, myId):
+    if myId == room.host[0]:
         return 1
     else:
-        for index, client in enumerate(rooms['clients']):
+        for index, client in enumerate(room.clients):
             if client[0] == myId:
                 return index + 2
             else:
@@ -87,23 +87,28 @@ def getPlayerConsequence(rooms, myId):
 
 
 app = Flask(__name__)
+# 解决跨域'Access-Control-Allow-Origin' header 问题
+# 添加配置:Access-Control-Allow-Origin: *
 CORS(app, resources=r'/*')
 
 ROOMS = {}
+ROOMS[55555] = ROOM(55555, 106, 'testHost')
 
 
 @app.route('/create_room', methods=['POST', 'GET'])
 def create_room():
     # 这里的data是一个字典, 包含创建该房间的房主host的id和名称
-    data = request.get_json()
+    data = json.loads(request.get_data().decode("utf-8"))
     name = data['name']
 
     # 按照当前时间生成一个房间号
     room_id = int(time.time() % 1000000)
-    host_id = request.remote_addr.split('.')[-1]
+    host_id = int(request.remote_addr.split('.')[-1])
 
     room = ROOM(room_id, host_id, name)
     ROOMS[room_id] = room
+
+    print(room_id, host_id, name)
 
     return inquire(room_id, host_id)
 
@@ -111,7 +116,8 @@ def create_room():
 @app.route('/join_room', methods=['POST', 'GET'])
 def join_room():
     # 这里的data是一个字典, 包含加入该房间的玩家的id和名称
-    data = request.get_json()
+
+    data = json.loads(request.get_data().decode("utf-8"))
     name = data['name']
     # id取客户端的ip地址最后一部分(用小数点分割后的最后一部分)
     client_id = int(request.remote_addr.split('.')[-1])
@@ -144,7 +150,7 @@ def join_room():
 
 @app.route('/game', methods=['POST', 'GET'])
 def game_data():
-    data = request.get_json()
+    data = json.loads(request.get_data().decode("utf-8"))
     room_id = data['room']
     sendTime = data['sendTime']
     player_id = request.remote_addr.split('.')[-1]
@@ -154,15 +160,28 @@ def game_data():
         # player_consequence = getPlayerConsequence(room, player_id)
         theGame = room._game
         map = theGame._map._map
+        theGame._map.consoleMap()
+
         player_info = []
+        lenOfSnake = len(theGame._snakes)
         for i in range(4):
-            if theGame._snakes[i]:
-                player_info.append({
-                    'name': room.clients[i][1],
-                    'id': room.clients[i][0],
-                    'score': theGame._snakes[i]._score,
-                    'length': len(theGame._snakes[i]._snake)
-                })
+            if lenOfSnake > i:
+
+                if i == 0:
+                    player_info.append({
+                        'name': room.host[1],
+                        'id': room.host[0],
+                        'score': theGame._snakes[i]._score,
+                        'length': len(theGame._snakes[i]._snake)
+                    })
+
+                else:
+                    player_info.append({
+                        'name': room.clients[i][1],
+                        'id': room.clients[i][0],
+                        'score': theGame._snakes[i]._score,
+                        'length': len(theGame._snakes[i]._snake)
+                    })
             else:
                 player_info.append({
                     'name': '',
@@ -173,6 +192,11 @@ def game_data():
 
         buffs = []
         # buffs.append(buffs[player_consequence-1])
+
+        print(map)
+        print(player_info)
+        print(buffs)
+        print(int(time.time() * 1000 - sendTime))
 
         return jsonify({
             'map': map,
@@ -194,7 +218,7 @@ def game_data():
 
 @app.route('/host_control', methods=['POST', 'GET'])
 def host_control():
-    data = request.get_json()
+    data = json.loads(request.get_data().decode("utf-8"))
     room_id = data['room']
     player_id = request.remote_addr.split('.')[-1]
     action = data['action']
@@ -226,7 +250,7 @@ def host_control():
 
 @app.route('/player_control', methods=['POST', 'GET'])
 def player_control():
-    data = request.get_json()
+    data = json.loads(request.get_data().decode("utf-8"))
     room_id = data['room']
     player_id = request.remote_addr.split('.')[-1]
     next_arrow_key = data['nextArrowKey']
@@ -272,6 +296,9 @@ def inquire(room_id, player_id):
             message = 'You are outside of this room'
             player_state = 'outside'
 
+        print(room.host)
+        print(room.clients)
+
         return jsonify({
             'message': message,
             'isRoomExist': True,
@@ -279,7 +306,7 @@ def inquire(room_id, player_id):
             'playerState': player_state,
             'roomID': room_id,
             'playerID': player_id,
-            'startTime': room.start_time,
+            'startTime': room._startTime,
             'data': None,
             'error': False
         })
